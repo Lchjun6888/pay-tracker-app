@@ -1,11 +1,11 @@
 {
-    "name": "Job Tracker",
-    "short_name": "JobTracker",
-    "description": "Track your work hours and earnings easily.",
+    "name": "PayTrack.",
+    "short_name": "PayTrack.",
+    "description": "스마트한 급여 및 일정 관리 파트너",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#4f46e5",
+    "background_color": "#0f172a",
+    "theme_color": "#6366f1",
     "icons": [
         {
             "src": "/vite.svg",

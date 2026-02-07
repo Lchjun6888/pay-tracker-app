@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const STORAGE_KEY = 'paytrack_v1_jobs';
 
 const initialJobs = [
     {
@@ -6,10 +8,9 @@ const initialJobs = [
         title: '카페 오전 알바',
         company: '스타벅스 강남점',
         category: 'HOSPITALITY',
-        categoryColor: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
         hourlyRate: 10300,
         nextShift: 'Mon, 8:00 AM',
-        icon: 'fas fa-coffee',
+        icon: 'fas fa-mug-hot',
         isActive: true,
         type: 'HOURLY',
         hoursPerWeek: 20,
@@ -19,10 +20,9 @@ const initialJobs = [
         title: '영어 과외',
         company: '김철수 학생',
         category: 'EDUCATION',
-        categoryColor: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
         hourlyRate: 40000,
         nextShift: 'Wed, 4:00 PM',
-        icon: 'fas fa-graduation-cap',
+        icon: 'fas fa-chalkboard-teacher',
         isActive: true,
         type: 'HOURLY',
         hoursPerWeek: 4,
@@ -32,10 +32,9 @@ const initialJobs = [
         title: '웹사이트 디자인 외주',
         company: '스타트업 A',
         category: 'DESIGN',
-        categoryColor: 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300',
-        hourlyRate: 1500000, // Per task
-        nextShift: '2026.02.25', // Deadline
-        icon: 'fas fa-paint-brush',
+        hourlyRate: 1500000,
+        nextShift: '2026.02.25',
+        icon: 'fas fa-palette',
         isActive: true,
         type: 'FREELANCE',
     },
@@ -81,8 +80,25 @@ export const brandIcons = [
 ];
 
 export function useJobs() {
-    const [jobs, setJobs] = useState(initialJobs);
-    const [filter, setFilter] = useState('all'); // 'all' | 'active' | 'archived'
+    const [jobs, setJobs] = useState(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            return saved ? JSON.parse(saved) : initialJobs;
+        } catch (e) {
+            console.error('Failed to load jobs:', e);
+            return initialJobs;
+        }
+    });
+
+    const [filter, setFilter] = useState('all');
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+        } catch (e) {
+            console.error('Failed to save jobs:', e);
+        }
+    }, [jobs]);
 
     const addJob = (job) => {
         const newJob = {
@@ -116,13 +132,10 @@ export function useJobs() {
         return true;
     });
 
-    // Calculate stats separately for Hourly and Freelance
     const hourlyJobs = jobs.filter(j => j.isActive && (!j.type || j.type === 'HOURLY'));
     const freelanceJobs = jobs.filter(j => j.isActive && j.type === 'FREELANCE');
 
     const stats = {
-        // Hourly Stats
-        // Hourly & Salary Stats
         monthlyIncome: jobs.filter(j => j.isActive).reduce((sum, job) => {
             if (!job.type || job.type === 'HOURLY') {
                 return sum + (job.hourlyRate * (job.hoursPerWeek || 0) * 4);
@@ -138,11 +151,10 @@ export function useJobs() {
         avgHourly: hourlyJobs.length ? Math.round(hourlyJobs.reduce((sum, job) => sum + job.hourlyRate, 0) / hourlyJobs.length) : 0,
         activeHourly: hourlyJobs.length + jobs.filter(j => j.isActive && j.type === 'SALARY').length,
         totalHours: hourlyJobs.reduce((sum, job) => sum + (job.hoursPerWeek || 0), 0),
-
-        // Freelance Stats
-        pendingIncome: freelanceJobs.reduce((sum, job) => sum + job.hourlyRate, 0), // hourlyRate stores task amount
+        pendingIncome: freelanceJobs.reduce((sum, job) => sum + job.hourlyRate, 0),
         activeProjects: freelanceJobs.length,
         nextDeadline: freelanceJobs.length ? freelanceJobs[0].nextShift : '-',
+        archivedJobs: jobs.filter(j => !j.isActive)
     };
 
     return {
@@ -157,3 +169,4 @@ export function useJobs() {
         archiveJob,
     };
 }
+

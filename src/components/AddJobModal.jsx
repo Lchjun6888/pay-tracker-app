@@ -2,17 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { brandIcons } from '../hooks/useJobs';
 import { KOREAN_LABOR, checkMinimumWage, formatKRW } from '../utils/koreanLabor';
 
-const categories = [
-    { name: 'HOSPITALITY', label: '외식/서비스', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' },
-    { name: 'EDUCATION', label: '교육/과외', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' },
-    { name: 'GIG ECONOMY', label: '배달/택배', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
-    { name: 'RETAIL', label: '마트/편의점', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
-    { name: 'OFFICE', label: '사무/행정', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' },
-    { name: 'DESIGN', label: '디자인/창작', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300' },
-    { name: 'MEDIA', label: '미디어/영상', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300' },
-    { name: 'CONSTRUCTION', label: '시공/견적', color: 'bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300' },
-    { name: 'FREELANCE', label: '기타 프리랜서', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300' },
-];
+import { CATEGORIES } from '../constants/jobConstants';
 
 export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
     const [jobType, setJobType] = useState('HOURLY');
@@ -162,7 +152,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const selectedCategory = categories.find(c => c.name === formData.category);
+        const selectedCategory = CATEGORIES.find(c => c.name === formData.category);
 
         const dayKeys = Object.keys(weeklySchedule);
         const schedule = {
@@ -185,7 +175,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
             type: jobType,
             salaryType: jobType === 'SALARY' ? salaryType : null,
             hourlyRate: parseInt(formData.hourlyRate) || 0,
-            categoryColor: selectedCategory?.color || categories[0].color,
+            categoryColor: selectedCategory?.color || CATEGORIES[0].color,
             schedule,
             nextShift: formData.nextShift || summary
         });
@@ -384,10 +374,14 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">카테고리</label>
                             <select
                                 value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                onChange={(e) => {
+                                    const newCat = e.target.value;
+                                    const firstIcon = brandIcons.find(b => b.category === newCat)?.icon || formData.icon;
+                                    setFormData({ ...formData, category: newCat, icon: firstIcon });
+                                }}
                                 className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white outline-none transition cursor-pointer text-sm"
                             >
-                                {categories.map(cat => (
+                                {CATEGORIES.map(cat => (
                                     <option key={cat.name} value={cat.name}>{cat.label}</option>
                                 ))}
                             </select>

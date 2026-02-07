@@ -17,11 +17,17 @@ function AppContent() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showNotification = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Basic user info state with persistence
   const [userInfo, setUserInfo] = useState(() => {
     const saved = localStorage.getItem('user_info');
-    return saved ? JSON.parse(saved) : { name: '', role: '', goalIncome: '' };
+    return saved ? JSON.parse(saved) : { name: '', role: '', goalIncome: '', avatar: 'dog' };
   });
 
   // Handle PWA shortcuts and deep links
@@ -49,6 +55,7 @@ function AppContent() {
   const handleSaveProfile = (newInfo) => {
     setUserInfo(newInfo);
     localStorage.setItem('user_info', JSON.stringify(newInfo));
+    showNotification('프로필이 저장되었습니다.');
   };
 
   // Filter jobs by search query
@@ -70,8 +77,10 @@ function AppContent() {
     if (editingJob) {
       updateJob(editingJob.id, jobData);
       setEditingJob(null);
+      showNotification('근무 정보가 수정되었습니다.');
     } else {
       addJob(jobData);
+      showNotification('새로운 근무가 추가되었습니다.');
     }
   };
 
@@ -115,6 +124,7 @@ function AppContent() {
             onJobClick={handleJobClick}
             onDeleteJob={handleDeleteJob}
             searchQuery={searchQuery}
+            userInfo={userInfo}
           />
         );
     }
@@ -128,6 +138,7 @@ function AppContent() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onProfileClick={() => setIsProfileOpen(true)}
+        userInfo={userInfo}
       />
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
@@ -154,6 +165,16 @@ function AppContent() {
         userInfo={userInfo}
         onSave={handleSaveProfile}
       />
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] animate-bounce-in">
+          <div className="bg-slate-800 dark:bg-slate-700 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10 backdrop-blur-md">
+            <i className={`fas ${toast.type === 'success' ? 'fa-check-circle text-green-400' : 'fa-exclamation-circle text-red-400'}`}></i>
+            <span className="text-sm font-bold">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

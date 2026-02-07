@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-export default function Navbar({ currentPage, onNavigate, searchQuery, onSearchChange, onProfileClick }) {
+export default function Navbar({ currentPage, onNavigate, searchQuery, onSearchChange, onProfileClick, userInfo }) {
     const { darkMode, toggleDarkMode } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const AVATAR_OPTIONS = [
+        { id: 'dog', emoji: '🐶', gradient: 'from-orange-400 to-amber-500' },
+        { id: 'cat', emoji: '🐱', gradient: 'from-blue-400 to-indigo-500' },
+        { id: 'rabbit', emoji: '🐰', gradient: 'from-pink-400 to-rose-500' },
+        { id: 'hamster', emoji: '🐹', gradient: 'from-yellow-400 to-orange-500' },
+        { id: 'bear', emoji: '🐻', gradient: 'from-rose-400 to-red-500' },
+        { id: 'fox', emoji: '🦊', gradient: 'from-orange-500 to-red-600' },
+    ];
+
+    const selectedAvatar = AVATAR_OPTIONS.find(a => a.id === userInfo?.avatar) || AVATAR_OPTIONS[0];
 
     const navItems = [
         { id: 'dashboard', label: '대시보드', icon: 'fas fa-home' },
@@ -28,10 +39,12 @@ export default function Navbar({ currentPage, onNavigate, searchQuery, onSearchC
                 <div className="flex items-center justify-between h-14 sm:h-16">
                     {/* Logo */}
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('dashboard')}>
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-md">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg transform rotate-3">
                             <i className="fas fa-wallet text-white text-sm sm:text-lg"></i>
                         </div>
-                        <span className="font-bold text-base sm:text-xl text-gray-900 dark:text-white hidden sm:block">Job Tracker</span>
+                        <span className="font-extrabold text-lg sm:text-xl tracking-tight text-gray-900 dark:text-white">
+                            PayTrack<span className="text-primary-500">.</span>
+                        </span>
                     </div>
 
                     {/* Desktop Navigation */}
@@ -87,10 +100,10 @@ export default function Navbar({ currentPage, onNavigate, searchQuery, onSearchC
                         {/* Profile Avatar - Desktop/Mobile Clickable */}
                         <div
                             onClick={onProfileClick}
-                            className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-md cursor-pointer hover:ring-2 hover:ring-primary-200 transition"
+                            className={`w-10 h-10 rounded-xl bg-gradient-to-br ${selectedAvatar.gradient} flex items-center justify-center shadow-lg shadow-primary-500/10 cursor-pointer hover:scale-110 active:scale-95 transition-all`}
                             title="내 정보 설정"
                         >
-                            <span className="text-white font-bold text-sm">JT</span>
+                            <span className="text-xl">{selectedAvatar.emoji}</span>
                         </div>
                     </div>
                 </div>

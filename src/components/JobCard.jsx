@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getCategoryLabel, getCategoryColor } from '../constants/jobConstants';
 
 export default function JobCard({ job, onClick, onDelete }) {
 
@@ -54,8 +55,8 @@ export default function JobCard({ job, onClick, onDelete }) {
             {/* Content */}
             <div className="p-3 sm:p-4">
                 {/* Category Tag */}
-                <span className={`inline-block text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md mb-1.5 sm:mb-2 ${job.categoryColor}`}>
-                    {job.category}
+                <span className={`inline-block text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md mb-1.5 sm:mb-2 ${getCategoryColor(job.category)}`}>
+                    {getCategoryLabel(job.category)}
                 </span>
 
                 {/* Title & Company */}
