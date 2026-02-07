@@ -1,0 +1,47 @@
+{
+    "name": "Job Tracker",
+    "short_name": "JobTracker",
+    "description": "Track your work hours and earnings easily.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4f46e5",
+    "icons": [
+        {
+            "src": "/vite.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/vite.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "캘린더 보기",
+            "short_name": "캘린더",
+            "description": "근무 일정을 확인합니다",
+            "url": "/calendar",
+            "icons": [
+                {
+                    "src": "/vite.svg",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "근무 추가",
+            "short_name": "근무 추가",
+            "description": "새로운 근무를 기록합니다",
+            "url": "/add-job",
+            "icons": [
+                {
+                    "src": "/vite.svg",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}
