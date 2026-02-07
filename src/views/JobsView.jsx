@@ -14,7 +14,7 @@ export default function JobsView({ jobs, onEdit, onDelete, onArchive }) {
                         <tr>
                             <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Job</th>
                             <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hourly Rate</th>
+                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pay Rate / Details</th>
                             <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                             <th className="text-right px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -24,7 +24,12 @@ export default function JobsView({ jobs, onEdit, onDelete, onArchive }) {
                             <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <img src={job.image} alt={job.title} className="w-10 h-10 rounded-lg object-cover" />
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg
+                      ${job.type === 'FREELANCE' ? 'bg-indigo-100 text-indigo-500 dark:bg-indigo-900/50' :
+                                                job.type === 'SALARY' ? 'bg-green-100 text-green-500 dark:bg-green-900/50' :
+                                                    'bg-primary-100 text-primary-500 dark:bg-primary-900/50'}`}>
+                                            <i className={job.icon || 'fas fa-briefcase'}></i>
+                                        </div>
                                         <div>
                                             <p className="font-semibold text-gray-900 dark:text-white">{job.title}</p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">{job.company}</p>
@@ -37,7 +42,18 @@ export default function JobsView({ jobs, onEdit, onDelete, onArchive }) {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className="font-medium text-gray-900 dark:text-white">₩{job.hourlyRate.toLocaleString()}</span>
+                                    <div className="font-medium text-gray-900 dark:text-white">
+                                        {job.type === 'FREELANCE' ? (
+                                            <span>₩{job.hourlyRate.toLocaleString()} <span className="text-xs text-gray-400">/ 건</span></span>
+                                        ) : job.type === 'SALARY' ? (
+                                            <span>
+                                                ₩{(job.hourlyRate / 10000).toLocaleString()}만
+                                                <span className="text-xs text-gray-400"> / {job.salaryType === 'ANNUAL' ? '연' : '월'}</span>
+                                            </span>
+                                        ) : (
+                                            <span>₩{job.hourlyRate.toLocaleString()} <span className="text-xs text-gray-400">/ 시</span></span>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full

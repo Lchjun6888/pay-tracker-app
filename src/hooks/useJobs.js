@@ -46,24 +46,38 @@ export const brandIcons = [
     { name: 'McDonald\'s', icon: 'fas fa-hamburger', category: 'HOSPITALITY' },
     { name: 'Cafe', icon: 'fas fa-mug-hot', category: 'HOSPITALITY' },
     { name: 'Restaurant', icon: 'fas fa-utensils', category: 'HOSPITALITY' },
+    { name: 'Bakery', icon: 'fas fa-bread-slice', category: 'HOSPITALITY' },
+    { name: 'Bar', icon: 'fas fa-cocktail', category: 'HOSPITALITY' },
     { name: 'CGV', icon: 'fas fa-film', category: 'HOSPITALITY' },
+    { name: 'Amusement', icon: 'fas fa-ticket-alt', category: 'HOSPITALITY' },
     { name: 'CU 편의점', icon: 'fas fa-store', category: 'RETAIL' },
     { name: 'GS25', icon: 'fas fa-shopping-basket', category: 'RETAIL' },
     { name: '이마트', icon: 'fas fa-shopping-cart', category: 'RETAIL' },
+    { name: 'Clothing', icon: 'fas fa-tshirt', category: 'RETAIL' },
     { name: 'Olive Young', icon: 'fas fa-spa', category: 'RETAIL' },
     { name: 'Coupang', icon: 'fas fa-box', category: 'GIG ECONOMY' },
-    { name: '배달의민족', icon: 'fas fa-motorcycle', category: 'GIG ECONOMY' },
+    { name: 'BaeMin', icon: 'fas fa-motorcycle', category: 'GIG ECONOMY' },
     { name: 'Uber/Taxi', icon: 'fas fa-car', category: 'GIG ECONOMY' },
-    { name: 'Tutoring', icon: 'fas fa-graduation-cap', category: 'EDUCATION' },
+    { name: 'Truck', icon: 'fas fa-truck', category: 'GIG ECONOMY' },
+    { name: 'Tutoring', icon: 'fas fa-chalkboard-teacher', category: 'EDUCATION' },
+    { name: 'Book', icon: 'fas fa-book', category: 'EDUCATION' },
     { name: 'Design', icon: 'fas fa-paint-brush', category: 'DESIGN' },
+    { name: 'Palette', icon: 'fas fa-palette', category: 'DESIGN' },
     { name: 'Coding', icon: 'fas fa-code', category: 'DESIGN' },
+    { name: 'Laptop', icon: 'fas fa-laptop-code', category: 'DESIGN' },
     { name: 'Video', icon: 'fas fa-video', category: 'MEDIA' },
     { name: 'Camera', icon: 'fas fa-camera', category: 'MEDIA' },
+    { name: 'Youtube', icon: 'fab fa-youtube', category: 'MEDIA' },
     { name: 'Construction', icon: 'fas fa-hard-hat', category: 'CONSTRUCTION' },
     { name: 'Tools', icon: 'fas fa-tools', category: 'CONSTRUCTION' },
+    { name: 'Hammer', icon: 'fas fa-hammer', category: 'CONSTRUCTION' },
     { name: 'Office', icon: 'fas fa-building', category: 'OFFICE' },
     { name: 'Computer', icon: 'fas fa-laptop', category: 'OFFICE' },
+    { name: 'Documents', icon: 'fas fa-file-alt', category: 'OFFICE' },
+    { name: 'Hospital', icon: 'fas fa-hospital', category: 'ALL' },
+    { name: 'Gym', icon: 'fas fa-dumbbell', category: 'ALL' },
     { name: 'Custom', icon: 'fas fa-briefcase', category: 'ALL' },
+    { name: 'Money', icon: 'fas fa-money-bill-wave', category: 'ALL' },
 ];
 
 export function useJobs() {
@@ -108,9 +122,21 @@ export function useJobs() {
 
     const stats = {
         // Hourly Stats
-        monthlyIncome: hourlyJobs.reduce((sum, job) => sum + (job.hourlyRate * (job.hoursPerWeek || 0) * 4), 0),
+        // Hourly & Salary Stats
+        monthlyIncome: jobs.filter(j => j.isActive).reduce((sum, job) => {
+            if (!job.type || job.type === 'HOURLY') {
+                return sum + (job.hourlyRate * (job.hoursPerWeek || 0) * 4);
+            } else if (job.type === 'SALARY') {
+                if (job.salaryType === 'ANNUAL') {
+                    return sum + Math.round(job.hourlyRate / 12);
+                } else {
+                    return sum + job.hourlyRate;
+                }
+            }
+            return sum;
+        }, 0),
         avgHourly: hourlyJobs.length ? Math.round(hourlyJobs.reduce((sum, job) => sum + job.hourlyRate, 0) / hourlyJobs.length) : 0,
-        activeHourly: hourlyJobs.length,
+        activeHourly: hourlyJobs.length + jobs.filter(j => j.isActive && j.type === 'SALARY').length,
         totalHours: hourlyJobs.reduce((sum, job) => sum + (job.hoursPerWeek || 0), 0),
 
         // Freelance Stats

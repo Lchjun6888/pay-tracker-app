@@ -15,13 +15,10 @@ const categories = [
 ];
 
 export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
-    const fileInputRef = useRef(null);
-    const [jobType, setJobType] = useState('HOURLY'); // 'HOURLY' or 'FREELANCE'
-
-    // Weekly Schedule State - Map of Day ID to Time Object
-    // e.g. { 'Mon': { start: '09:00', end: '18:00' }, ... }
+    const [jobType, setJobType] = useState('HOURLY');
+    const [salaryType, setSalaryType] = useState('MONTHLY');
     const [weeklySchedule, setWeeklySchedule] = useState({});
-    const [selectedDayId, setSelectedDayId] = useState(null); // Currently editing day
+    const [selectedDayId, setSelectedDayId] = useState(null);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -29,14 +26,12 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
         category: 'HOSPITALITY',
         hourlyRate: '',
         nextShift: '',
-        icon: 'fas fa-coffee',
-        imageUrl: '',
+        icon: 'fas fa-briefcase',
         hoursPerWeek: 20,
         nightHoursPerWeek: 0,
         mealAllowance: 0,
-        taxType: 'NONE', // 'NONE', 'BUSINESS', 'INSURANCE'
+        taxType: 'NONE',
     });
-    const [previewImage, setPreviewImage] = useState(null);
 
     const daysOfWeek = [
         { id: 'Mon', label: '월' },
@@ -51,16 +46,13 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
     useEffect(() => {
         if (editingJob) {
             setJobType(editingJob.type || 'HOURLY');
+            setSalaryType(editingJob.salaryType || 'MONTHLY');
 
-            // Load Schedule
             const scheduleMap = {};
             if (editingJob.schedule?.days) {
-                // Migration from old simple array format if needed, or read new format
-                // Assuming new format: schedule.details = { Mon: {start, end}, ... }
                 if (editingJob.schedule.details) {
                     setWeeklySchedule(editingJob.schedule.details);
                 } else if (editingJob.schedule.days && editingJob.schedule.time) {
-                    // Convert old global time format to per-day
                     editingJob.schedule.days.forEach(day => {
                         scheduleMap[day] = editingJob.schedule.time;
                     });
@@ -77,13 +69,11 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                 hourlyRate: editingJob.hourlyRate.toString(),
                 nextShift: editingJob.nextShift,
                 icon: editingJob.icon || 'fas fa-briefcase',
-                imageUrl: editingJob.imageUrl || '',
                 hoursPerWeek: editingJob.hoursPerWeek || 20,
                 nightHoursPerWeek: editingJob.nightHoursPerWeek || 0,
                 mealAllowance: editingJob.mealAllowance || 0,
                 taxType: editingJob.taxType || 'NONE',
             });
-            setPreviewImage(editingJob.imageUrl || null);
         } else {
             resetForm();
         }
@@ -91,6 +81,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
 
     const resetForm = () => {
         setJobType('HOURLY');
+        setSalaryType('MONTHLY');
         setWeeklySchedule({});
         setSelectedDayId(null);
         setFormData({
@@ -99,14 +90,12 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
             category: 'HOSPITALITY',
             hourlyRate: '',
             nextShift: '',
-            icon: 'fas fa-coffee',
-            imageUrl: '',
+            icon: 'fas fa-briefcase',
             hoursPerWeek: 20,
             nightHoursPerWeek: 0,
             mealAllowance: 0,
             taxType: 'NONE',
         });
-        setPreviewImage(null);
     };
 
     if (!isOpen) return null;
@@ -117,18 +106,6 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
             icon: brand.icon,
             company: brand.name === 'Custom' ? formData.company : brand.name,
         });
-    };
-
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImage(reader.result);
-                setFormData({ ...formData, imageUrl: reader.result });
-            };
-            reader.readAsDataURL(file);
-        }
     };
 
     const handleDayToggle = (dayId) => {
@@ -194,15 +171,19 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
         };
 
         // Generate summary string
-        // e.g. "Mon, Wed 09:00~18:00" or "Mon 9-6, Tue 1-5"
-        // For simplicity, just list days
-        const summary = dayKeys.length > 0
-            ? `${dayKeys.join(', ')} (주 ${formData.hoursPerWeek}시간)`
-            : '';
+        let summary = '';
+        if (jobType === 'HOURLY') {
+            summary = dayKeys.length > 0
+                ? `${dayKeys.join(', ')} (주 ${formData.hoursPerWeek}시간)`
+                : '';
+        } else if (jobType === 'SALARY') {
+            summary = salaryType === 'MONTHLY' ? '월급제 (고정급)' : '연봉제 (고정급)';
+        }
 
         onAdd({
             ...formData,
             type: jobType,
+            salaryType: jobType === 'SALARY' ? salaryType : null,
             hourlyRate: parseInt(formData.hourlyRate) || 0,
             categoryColor: selectedCategory?.color || categories[0].color,
             schedule,
@@ -219,7 +200,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                 {/* Header */}
                 <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                        {editingJob ? '알바/프리랜서 수정' : '새 알바/프리랜서 추가'}
+                        {editingJob ? '직업 수정' : '새로운 직업 추가'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -240,7 +221,22 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                                     ? 'bg-white dark:bg-slate-600 text-primary-600 dark:text-white shadow-sm'
                                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
                         >
-                            시급 (알바)
+                            알바 (시급)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setJobType('SALARY');
+                                if (formData.category === 'HOSPITALITY') {
+                                    setFormData({ ...formData, category: 'OFFICE' }); // Auto-switch category guess
+                                }
+                            }}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition cursor-pointer
+                ${jobType === 'SALARY'
+                                    ? 'bg-white dark:bg-slate-600 text-green-600 dark:text-white shadow-sm'
+                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                        >
+                            정규직 (월급/연봉)
                         </button>
                         <button
                             type="button"
@@ -255,7 +251,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                                     ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm'
                                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
                         >
-                            건당 (프리랜서)
+                            외주 (건당)
                         </button>
                     </div>
                 </div>
@@ -343,10 +339,35 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                         </div>
                     )}
 
+                    {/* SALARY SPECIFIC INPUTS */}
+                    {jobType === 'SALARY' && (
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800/30">
+                            <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                                <i className="fas fa-coins text-green-500"></i> 급여 방식 설정
+                            </label>
+                            <div className="flex gap-2 mb-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setSalaryType('MONTHLY')}
+                                    className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition ${salaryType === 'MONTHLY' ? 'bg-white border-green-500 text-green-600 shadow-sm' : 'border-gray-200 text-gray-500'}`}
+                                >
+                                    월급
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSalaryType('ANNUAL')}
+                                    className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition ${salaryType === 'ANNUAL' ? 'bg-white border-green-500 text-green-600 shadow-sm' : 'border-gray-200 text-gray-500'}`}
+                                >
+                                    연봉
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Basic Inputs */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {jobType === 'HOURLY' ? '알바 이름' : '프로젝트/의뢰명'}
+                            {jobType === 'HOURLY' ? '알바 이름' : jobType === 'SALARY' ? '직업 / 회사명' : '프로젝트/의뢰명'}
                         </label>
                         <input
                             type="text"
@@ -354,7 +375,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white outline-none transition text-sm"
-                            placeholder={jobType === 'HOURLY' ? "예: 오전 근무" : "예: 웹사이트 디자인"}
+                            placeholder={jobType === 'HOURLY' ? "예: 오전 근무" : jobType === 'SALARY' ? "예: 삼성전자 마케팅팀" : "예: 웹사이트 디자인"}
                         />
                     </div>
 
@@ -373,7 +394,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {jobType === 'HOURLY' ? '시급 (₩)' : '건당 금액 (₩)'}
+                                {jobType === 'HOURLY' ? '시급 (₩)' : jobType === 'SALARY' ? (salaryType === 'MONTHLY' ? '월 급여 (₩)' : '연봉 (₩)') : '건당 금액 (₩)'}
                             </label>
                             <input
                                 type="text"
@@ -389,28 +410,26 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                         </div>
                     </div>
 
-                    {!previewImage && (
-                        <div className="grid grid-cols-6 gap-1.5">
-                            {filteredBrands.map((brand) => (
-                                <button
-                                    key={brand.name}
-                                    type="button"
-                                    onClick={() => handleBrandSelect(brand)}
-                                    className={`p-2 rounded-lg border-2 transition cursor-pointer
+                    <div className="grid grid-cols-6 gap-1.5">
+                        {filteredBrands.map((brand) => (
+                            <button
+                                key={brand.name}
+                                type="button"
+                                onClick={() => handleBrandSelect(brand)}
+                                className={`p-2 rounded-lg border-2 transition cursor-pointer
                       ${formData.icon === brand.icon
-                                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30'
-                                            : 'border-gray-200 dark:border-slate-600 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <i className={`${brand.icon} text-lg text-gray-700 dark:text-gray-300`}></i>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30'
+                                        : 'border-gray-200 dark:border-slate-600 hover:border-gray-300'
+                                    }`}
+                            >
+                                <i className={`${brand.icon} text-lg text-gray-700 dark:text-gray-300`}></i>
+                            </button>
+                        ))}
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {jobType === 'HOURLY' ? '회사 / 지점' : '의뢰인 / 클라이언트'}
+                            {jobType === 'HOURLY' ? '회사 / 지점' : '회사 / 클라이언트'}
                         </label>
                         <input
                             type="text"
@@ -442,7 +461,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                             >
                                 3.3% 공제
                             </button>
-                            {jobType === 'HOURLY' && (
+                            {jobType !== 'FREELANCE' && (
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, taxType: 'INSURANCE' })}
@@ -455,22 +474,30 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                     </div>
 
                     {/* Korean Labor Settings - Only for Hourly */}
-                    {jobType === 'HOURLY' && (
+                    {(jobType === 'HOURLY' || jobType === 'SALARY') && (
                         <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                <i className="fas fa-calculator text-primary-500"></i> 근무 시간 설정
-                            </h3>
+                            {jobType === 'HOURLY' ? (
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                    <i className="fas fa-calculator text-primary-500"></i> 근무 시간 설정
+                                </h3>
+                            ) : (
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                    <i className="fas fa-utensils text-primary-500"></i> 추가 수당
+                                </h3>
+                            )}
                             <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">주간 근무시간 (자동계산)</label>
-                                    <input
-                                        type="number"
-                                        value={formData.hoursPerWeek}
-                                        readOnly
-                                        className="w-full px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-white text-sm bg-gray-100 dark:bg-slate-700/50 cursor-not-allowed"
-                                    />
-                                </div>
-                                <div>
+                                {jobType === 'HOURLY' && (
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">주간 근무시간 (자동계산)</label>
+                                        <input
+                                            type="number"
+                                            value={formData.hoursPerWeek}
+                                            readOnly
+                                            className="w-full px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-white text-sm bg-gray-100 dark:bg-slate-700/50 cursor-not-allowed"
+                                        />
+                                    </div>
+                                )}
+                                <div className={jobType === 'SALARY' ? 'col-span-2' : ''}>
                                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">식비 (월/비과세)</label>
                                     <input
                                         type="text"
@@ -490,13 +517,17 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                     {/* Next Shift / Deadline */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {jobType === 'HOURLY' ? '근무 요약 (자동)' : '제출일 (마감일)'}
+                            {jobType === 'HOURLY' ? '근무 요약 (자동)' : jobType === 'SALARY' ? '급여일' : '제출일 (마감일)'}
                         </label>
                         <input
                             type="text"
                             value={formData.nextShift}
                             onChange={(e) => setFormData({ ...formData, nextShift: e.target.value })}
-                            placeholder={Object.keys(weeklySchedule).length > 0 ? "자동 생성됨 (수정 가능)" : ""}
+                            placeholder={
+                                jobType === 'HOURLY'
+                                    ? (Object.keys(weeklySchedule).length > 0 ? "자동 생성됨 (수정 가능)" : "")
+                                    : (jobType === 'SALARY' ? "예: 매월 25일" : "마감일 입력")
+                            }
                             className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white outline-none transition text-sm"
                         />
                     </div>
@@ -506,7 +537,9 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                         className={`w-full text-white font-semibold py-3 rounded-xl shadow-md transition cursor-pointer
               ${jobType === 'HOURLY'
                                 ? 'bg-primary-500 hover:bg-primary-600'
-                                : 'bg-indigo-500 hover:bg-indigo-600'}`}
+                                : jobType === 'SALARY'
+                                    ? 'bg-green-600 hover:bg-green-700'
+                                    : 'bg-indigo-500 hover:bg-indigo-600'}`}
                     >
                         <i className={`fas ${editingJob ? 'fa-save' : 'fa-plus'} mr-2`}></i>
                         {editingJob ? '저장하기' : '추가하기'}

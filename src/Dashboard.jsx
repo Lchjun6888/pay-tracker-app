@@ -15,8 +15,8 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
 
     // Filter jobs explicitly by viewMode
     const displayedJobs = jobs.filter(job => {
-        // If HOURLY mode, show jobs that are HOURLY or undefined (legacy)
-        if (viewMode === 'HOURLY') return (!job.type || job.type === 'HOURLY');
+        // If HOURLY mode, show jobs that are HOURLY or SALARY or undefined (legacy)
+        if (viewMode === 'HOURLY') return (!job.type || job.type === 'HOURLY' || job.type === 'SALARY');
         // If FREELANCE mode, show FREELANCE jobs
         if (viewMode === 'FREELANCE') return job.type === 'FREELANCE';
         return true;
@@ -28,7 +28,7 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-3 sm:gap-4">
                 <div>
                     <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                        {viewMode === 'HOURLY' ? '내 알바' : '프리랜서 / 외주'}
+                        {viewMode === 'HOURLY' ? '내 직업 (알바/직장)' : '프리랜서 / 외주'}
                         {searchQuery && (
                             <span className="text-base font-normal text-gray-500 dark:text-gray-400 ml-2">
                                 · "{searchQuery}"
@@ -36,7 +36,7 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
                         )}
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm sm:text-base">
-                        {viewMode === 'HOURLY' ? '시간제 알바 관리' : '프로젝트 & 외주 관리'}
+                        {viewMode === 'HOURLY' ? '고정 수입 및 근무 관리' : '프로젝트 & 외주 관리'}
                     </p>
                 </div>
 
@@ -50,7 +50,7 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
                                     ? 'bg-white dark:bg-slate-600 text-primary-600 dark:text-white shadow-sm'
                                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
                         >
-                            알바
+                            근무 (고정)
                         </button>
                         <button
                             onClick={() => setViewMode('FREELANCE')}
@@ -69,7 +69,7 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
               ${viewMode === 'FREELANCE' ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-primary-500 hover:bg-primary-600'}`}
                     >
                         <i className="fas fa-plus"></i>
-                        <span className="hidden sm:inline">{viewMode === 'FREELANCE' ? '외주 추가' : '알바 추가'}</span>
+                        <span className="hidden sm:inline">{viewMode === 'FREELANCE' ? '외주 추가' : '직업 추가'}</span>
                         <span className="sm:hidden">추가</span>
                     </button>
                 </div>
@@ -92,7 +92,7 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
                         </div>
                         <div>
                             <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                {viewMode === 'FREELANCE' ? '진행 중 외주 총액' : '예상 월수입'}
+                                {viewMode === 'FREELANCE' ? '진행 중 외주 총액' : '예상 월수입 (합계)'}
                             </p>
                             <div className="flex items-baseline gap-2 sm:gap-3">
                                 <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
@@ -107,15 +107,15 @@ export default function Dashboard({ jobs, stats, filter, setFilter, onAddClick, 
                         {viewMode === 'HOURLY' ? (
                             <>
                                 <div className="text-center sm:text-left">
-                                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">평균 시급</p>
+                                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">평균 시급 (알바)</p>
                                     <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-0.5 sm:mt-1">{formatCurrency(stats.avgHourly)}</p>
                                 </div>
                                 <div className="text-center sm:text-left">
-                                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">활성 알바</p>
+                                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">활성 근무</p>
                                     <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-0.5 sm:mt-1">{stats.activeHourly}개</p>
                                 </div>
                                 <div className="text-center sm:text-left">
-                                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">주간 시간</p>
+                                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">주간 시간 (알바)</p>
                                     <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-0.5 sm:mt-1">{stats.totalHours}시간</p>
                                 </div>
                             </>
