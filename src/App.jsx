@@ -24,6 +24,26 @@ function AppContent() {
     return saved ? JSON.parse(saved) : { name: '', role: '', goalIncome: '' };
   });
 
+  // Handle PWA shortcuts and deep links
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/calendar') {
+      setCurrentPage('calendar');
+    } else if (path === '/add-job') {
+      setIsModalOpen(true);
+    } else if (path === '/settings') {
+      setCurrentPage('settings');
+    }
+
+    // Optional: Handle browser back button basic support
+    window.onpopstate = () => {
+      const newPath = window.location.pathname;
+      if (newPath === '/calendar') setCurrentPage('calendar');
+      else if (newPath === '/settings') setCurrentPage('settings');
+      else setCurrentPage('dashboard');
+    };
+  }, []);
+
   const { jobs, allJobs, stats, filter, setFilter, addJob, deleteJob, archiveJob, updateJob } = useJobs();
 
   const handleSaveProfile = (newInfo) => {
