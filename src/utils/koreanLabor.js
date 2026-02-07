@@ -43,6 +43,8 @@ export function calculateWeeklyHolidayPay(weeklyHours, hourlyRate) {
  */
 export function calculateMonthlyBreakdown(job) {
     const {
+        type = 'HOURLY',
+        salaryType = 'MONTHLY',
         hourlyRate,
         hoursPerWeek = 20,
         nightHoursPerWeek = 0,
@@ -50,26 +52,32 @@ export function calculateMonthlyBreakdown(job) {
         taxType = 'NONE' // 'NONE', 'BUSINESS', 'INSURANCE'
     } = job;
 
-    // 월 기준 주 수 (4.345주)
-    const weeksPerMonth = 4.345;
+    let basePay, weeklyHolidayPay, nightPay, overtimePay, grossPay;
 
-    // 1. 기본급 (주간 근무시간 * 시급 * 4.345)
-    const basePay = Math.floor(hoursPerWeek * hourlyRate * weeksPerMonth);
+    if (type === 'SALARY') {
+        // Salary Mode: hourlyRate is actually the fixed salary amount
+        const annualSalary = salaryType === 'ANNUAL' ? hourlyRate : hourlyRate * 12;
+        const monthlySalary = salaryType === 'ANNUAL' ? Math.floor(hourlyRate / 12) : hourlyRate;
 
-    // 2. 주휴수당
-    const weeklyHoliday = calculateWeeklyHolidayPay(hoursPerWeek, hourlyRate);
-    const weeklyHolidayPay = Math.floor(weeklyHoliday.amount * weeksPerMonth);
+        grossPay = monthlySalary;
+        basePay = Math.max(0, grossPay - mealAllowance); // Assume Meal Allowance is included in Gross
+        weeklyHolidayPay = 0; // Included in salary
+        nightPay = 0; // Included in salary usually
+        overtimePay = 0; // Included
+    } else {
+        // Hourly Mode
+        // 월 기준 주 수 (4.345주)
+        const weeksPerMonth = 4.345;
 
-    // 3. 야간수당 (야간시간 * 0.5 * 시급 * 4.345) -> nightHoursPerWeek가 주간 기준이라고 가정
-    const nightPay = Math.floor(nightHoursPerWeek * hourlyRate * KOREAN_LABOR.NIGHT_BONUS_RATE * weeksPerMonth);
+        basePay = Math.floor(hoursPerWeek * hourlyRate * weeksPerMonth);
+        const weeklyHoliday = calculateWeeklyHolidayPay(hoursPerWeek, hourlyRate);
+        weeklyHolidayPay = Math.floor(weeklyHoliday.amount * weeksPerMonth);
+        nightPay = Math.floor(nightHoursPerWeek * hourlyRate * KOREAN_LABOR.NIGHT_BONUS_RATE * weeksPerMonth);
+        const overtimeHours = Math.max(0, hoursPerWeek - 40);
+        overtimePay = Math.floor(overtimeHours * hourlyRate * KOREAN_LABOR.OVERTIME_BONUS_RATE * weeksPerMonth);
 
-    // 4. 연장수당 (주 40시간 초과 시 1.5배, 여기서는 단순화하여 하루 8시간 초과분 고려 없이 주간 총량으로만 접근하거나 생략)
-    // *정확한 연장수당은 일일 근무시간 데이터가 필요하므로 여기서는 단순 주 40시간 초과분만 계산
-    const overtimeHours = Math.max(0, hoursPerWeek - 40);
-    const overtimePay = Math.floor(overtimeHours * hourlyRate * KOREAN_LABOR.OVERTIME_BONUS_RATE * weeksPerMonth);
-
-    // 총 세전 급여
-    const grossPay = basePay + weeklyHolidayPay + nightPay + overtimePay + mealAllowance;
+        grossPay = basePay + weeklyHolidayPay + nightPay + overtimePay + mealAllowance;
+    }
 
     // 세금 계산
     let taxRate = 0;
@@ -77,7 +85,7 @@ export function calculateMonthlyBreakdown(job) {
     else if (taxType === 'INSURANCE') taxRate = KOREAN_LABOR.TAX_RATES.FOUR_MAJOR_INSURANCE; // ~9.4%
 
     // 식비는 비과세 (통상적으로 20만원까지)
-    const taxableIncome = Math.max(0, grossPay - Math.min(mealAllowance, 200000));
+    const taxableIncome = Math.max(0, grossPay - Math.min(mealAllowance, KOREAN_LABOR.MEAL_ALLOWANCE_LIMIT));
     const taxAmount = Math.floor(taxableIncome * taxRate);
     const netPay = grossPay - taxAmount;
 

@@ -259,7 +259,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-5 space-y-4">
 
-                    {jobType === 'HOURLY' && (
+                    {(jobType === 'HOURLY' || jobType === 'SALARY') && (
                         <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4 border border-primary-100 dark:border-primary-800/30">
                             <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
                                 <i className="fas fa-calendar-alt text-primary-500"></i> 근무 요일 & 시간 설정
@@ -394,7 +394,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, editingJob }) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {jobType === 'HOURLY' ? '시급 (₩)' : jobType === 'SALARY' ? (salaryType === 'MONTHLY' ? '월 급여 (₩)' : '연봉 (₩)') : '건당 금액 (₩)'}
+                                {jobType === 'HOURLY' ? '시급 (₩)' : jobType === 'SALARY' ? (salaryType === 'MONTHLY' ? '월 급여 (세전) (₩)' : '연봉 (세전) (₩)') : '건당 금액 (₩)'}
                             </label>
                             <input
                                 type="text"

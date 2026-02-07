@@ -90,19 +90,36 @@ export default function JobDetailModal({ job, isOpen, onClose, onEdit }) {
                             </div>
 
                             {/* Monthly Breakdown Detail */}
+                            {/* Monthly Breakdown Detail */}
                             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 mb-4">
                                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">
                                     <i className="fas fa-list-ul text-gray-400 mr-2"></i>급여 상세
                                 </h3>
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">기본급 (시급 {formatKRW(job.hourlyRate)})</span>
+                                        <span className="text-gray-600 dark:text-gray-400">
+                                            {job.type === 'SALARY' ? '월 기본급 (세전)' : `기본급 (시급 ${formatKRW(job.hourlyRate)})`}
+                                        </span>
                                         <span className="font-medium">{formatKRW(breakdown.basePay)}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">주휴수당</span>
-                                        <span className="font-medium text-green-600">{formatKRW(breakdown.weeklyHolidayPay)}</span>
-                                    </div>
+                                    {breakdown.weeklyHolidayPay > 0 && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">주휴수당</span>
+                                            <span className="font-medium text-green-600">{formatKRW(breakdown.weeklyHolidayPay)}</span>
+                                        </div>
+                                    )}
+                                    {breakdown.nightPay > 0 && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">야간수당</span>
+                                            <span className="font-medium text-purple-600">{formatKRW(breakdown.nightPay)}</span>
+                                        </div>
+                                    )}
+                                    {breakdown.overtimePay > 0 && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">연장수당</span>
+                                            <span className="font-medium text-orange-600">{formatKRW(breakdown.overtimePay)}</span>
+                                        </div>
+                                    )}
                                     {breakdown.mealAllowance > 0 && (
                                         <div className="flex justify-between">
                                             <span className="text-gray-600 dark:text-gray-400">식비 (비과세)</span>
