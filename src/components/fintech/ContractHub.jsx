@@ -31,17 +31,17 @@ const ContractHub = () => {
     ];
 
     const [totalValue, setTotalValue] = useState(5000000);
-    const [paidToDate, setPaidToDate] = useState(3000000);
-    const pending = totalValue - paidToDate;
-    const progressPercent = (paidToDate / totalValue) * 100;
+    const [released, setReleased] = useState(3000000);
+    const [inEscrow, setInEscrow] = useState(2000000); // Funds held in escrow
+    const progressPercent = (released / totalValue) * 100;
 
-    const handleSendPayment = () => {
-        if (pending <= 0) {
-            alert('모든 대금이 지급되었습니다.');
+    const handleReleaseFunds = () => {
+        if (inEscrow <= 0) {
+            alert('에스크로에 예치된 잔액이 없습니다.');
             return;
         }
 
-        const amountStr = prompt(`잔액: ${pending.toLocaleString()}원\n지급할 금액을 입력하세요:`, pending);
+        const amountStr = prompt(`현재 에스크로 보관 금액: ${inEscrow.toLocaleString()}원\n작업자에게 승인(지급)할 금액을 입력하세요:`, inEscrow);
         if (!amountStr) return;
 
         const amount = parseInt(amountStr.replace(/,/g, ''), 10);
@@ -50,14 +50,24 @@ const ContractHub = () => {
             return;
         }
 
-        if (amount > pending) {
-            alert('지급 금액이 잔액을 초과할 수 없습니다.');
+        if (amount > inEscrow) {
+            alert('에스크로 잔액을 초과할 수 없습니다.');
             return;
         }
 
-        if (window.confirm(`${amount.toLocaleString()}원을 지급하시겠습니까?`)) {
-            setPaidToDate(prev => prev + amount);
-            alert(`${amount.toLocaleString()}원 지급이 완료되었습니다!`);
+        if (window.confirm(`${amount.toLocaleString()}원을 작업자에게 지급 승인하시겠습니까?\n(승인 즉시 인출 가능해집니다)`)) {
+            setInEscrow(prev => prev - amount);
+            setReleased(prev => prev + amount);
+            alert(`${amount.toLocaleString()}원이 지급 승인되었습니다!`);
+        }
+    };
+
+    const handleCancelContract = () => {
+        if (window.confirm('계약 파기를 요청하시겠습니까?\n\n안전한 거래를 위해 양측(작업자/클라이언트)의 상호 동의가 필요합니다.\n동의 시 에스크로 금액은 환불 규정에 따라 반환됩니다.')) {
+            const reason = prompt('취소 사유를 입력해주세요 (상대방에게 전송됨):');
+            if (reason) {
+                alert('계약 종료 요청이 상대방에게 전송되었습니다.\n상대방이 동의하면 계약이 종료됩니다.');
+            }
         }
     };
 
@@ -99,13 +109,13 @@ const ContractHub = () => {
                         <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">TOTAL VALUE</p>
                         <p className="font-mono font-bold text-xl text-slate-900 dark:text-white">{totalValue.toLocaleString()}원</p>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-center border-l-4 border-green-500">
-                        <p className="text-xs text-green-600 uppercase tracking-wider mb-1">PAID TO DATE</p>
-                        <p className="font-mono font-bold text-xl text-green-600">{paidToDate.toLocaleString()}원</p>
+                    <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-xl text-center border-l-4 border-green-500">
+                        <p className="text-xs text-green-600 uppercase tracking-wider mb-1">RELEASED (지급)</p>
+                        <p className="font-mono font-bold text-xl text-green-600">{released.toLocaleString()}원</p>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-center">
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">PENDING</p>
-                        <p className="font-mono font-bold text-xl text-slate-500">{pending.toLocaleString()}원</p>
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-xl text-center">
+                        <p className="text-xs text-indigo-600 uppercase tracking-wider mb-1">HELD IN ESCROW</p>
+                        <p className="font-mono font-bold text-xl text-indigo-700 dark:text-indigo-400">{inEscrow.toLocaleString()}원</p>
                     </div>
                 </div>
 
@@ -137,18 +147,26 @@ const ContractHub = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-3">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleReleaseFunds}
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-indigo-200 dark:shadow-none"
+                        >
+                            <i className="fas fa-check-double"></i> Approve & Release
+                        </button>
+                        <button
+                            onClick={handleMessage}
+                            className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <i className="fas fa-comment"></i> Message 이프리
+                        </button>
+                    </div>
                     <button
-                        onClick={handleSendPayment}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                        onClick={handleCancelContract}
+                        className="w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg text-sm transition-colors"
                     >
-                        <i className="fas fa-paper-plane"></i> Send Payment
-                    </button>
-                    <button
-                        onClick={handleMessage}
-                        className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
-                    >
-                        <i className="fas fa-comment"></i> Message 이프리
+                        계약 파기 요청 (Require Mutual Agreement)
                     </button>
                 </div>
             </div>

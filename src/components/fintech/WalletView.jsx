@@ -19,7 +19,7 @@ const WalletView = () => {
 
     // Payment Methods
     const paymentMethods = [
-        { id: 'escrow', name: 'Escrow 서비스', desc: '계약 완료 시까지 안전하게 보관. 프리랜서 추천', recommended: true },
+        { id: 'escrow', name: 'Escrow 서비스', desc: '계약 완료 시까지 안전하게 보관. (가상계좌 발급)', recommended: true },
         { id: 'bank', name: '즉시 계좌이체', desc: '연결된 국민은행 계좌로 바로 송금', recommended: false },
         { id: 'card', name: '신용카드 (Visa/Mastercard)', desc: '일회성 결제 또는 플랫폼 수수료 지불', recommended: false },
     ];
@@ -45,7 +45,7 @@ const WalletView = () => {
     };
 
     const handleAddFunds = () => {
-        const amountStr = prompt('충전할 금액을 입력하세요 (원):');
+        const amountStr = prompt('예치금으로 충전할 금액을 입력하세요 (원):\n(안전결제를 위해 플랫폼에 미리 입금합니다)');
         if (!amountStr) return;
         const amount = parseInt(amountStr.replace(/,/g, ''), 10);
         if (isNaN(amount) || amount <= 0) {
@@ -98,7 +98,7 @@ const WalletView = () => {
                             <button
                                 onClick={handleAddFunds}
                                 className="flex-1 md:flex-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white font-bold px-5 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 active:scale-95">
-                                <i className="fas fa-plus"></i> 충전하기
+                                <i className="fas fa-plus"></i> 충전하기 (예치금)
                             </button>
                         </div>
                     </div>
