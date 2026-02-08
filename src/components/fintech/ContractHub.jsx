@@ -30,10 +30,43 @@ const ContractHub = () => {
         },
     ];
 
-    const totalValue = 5000000;
-    const paidToDate = 3000000;
-    const pending = 2000000;
+    const [totalValue, setTotalValue] = useState(5000000);
+    const [paidToDate, setPaidToDate] = useState(3000000);
+    const pending = totalValue - paidToDate;
     const progressPercent = (paidToDate / totalValue) * 100;
+
+    const handleSendPayment = () => {
+        if (pending <= 0) {
+            alert('모든 대금이 지급되었습니다.');
+            return;
+        }
+
+        const amountStr = prompt(`잔액: ${pending.toLocaleString()}원\n지급할 금액을 입력하세요:`, pending);
+        if (!amountStr) return;
+
+        const amount = parseInt(amountStr.replace(/,/g, ''), 10);
+        if (isNaN(amount) || amount <= 0) {
+            alert('올바른 금액을 입력해주세요.');
+            return;
+        }
+
+        if (amount > pending) {
+            alert('지급 금액이 잔액을 초과할 수 없습니다.');
+            return;
+        }
+
+        if (window.confirm(`${amount.toLocaleString()}원을 지급하시겠습니까?`)) {
+            setPaidToDate(prev => prev + amount);
+            alert(`${amount.toLocaleString()}원 지급이 완료되었습니다!`);
+        }
+    };
+
+    const handleMessage = () => {
+        const msg = prompt('메시지를 입력하세요:');
+        if (msg) {
+            alert('메시지가 전송되었습니다.');
+        }
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -105,10 +138,16 @@ const ContractHub = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                    <button className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <button
+                        onClick={handleSendPayment}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                    >
                         <i className="fas fa-paper-plane"></i> Send Payment
                     </button>
-                    <button className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <button
+                        onClick={handleMessage}
+                        className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                    >
                         <i className="fas fa-comment"></i> Message 이프리
                     </button>
                 </div>
@@ -129,8 +168,8 @@ const ContractHub = () => {
                             {dateGroup.items.map(item => (
                                 <div key={item.id} className="flex items-start gap-3 mb-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${item.type === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' :
-                                            item.type === 'approved' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' :
-                                                'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
+                                        item.type === 'approved' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' :
+                                            'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
                                         }`}>
                                         {item.type === 'success' && <i className="fas fa-check text-xs"></i>}
                                         {item.type === 'approved' && <i className="fas fa-shield-alt text-xs"></i>}
@@ -141,7 +180,10 @@ const ContractHub = () => {
                                         <p className="text-xs text-slate-500 leading-relaxed mb-1">{item.desc}</p>
                                         <p className="text-[10px] text-slate-400">{item.time}</p>
                                         {item.hasAction && (
-                                            <button className="mt-2 text-xs font-bold bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition-colors w-full">
+                                            <button
+                                                onClick={() => alert(`상세 내역:\n${item.title}\n${item.desc}\n\n[승인] 또는 [거절] 기능을 제공할 수 있습니다.`)}
+                                                className="mt-2 text-xs font-bold bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition-colors w-full active:scale-95"
+                                            >
                                                 VIEW REQUEST
                                             </button>
                                         )}

@@ -34,6 +34,8 @@ const PaymentMilestones = () => {
     ]);
 
     const handleRequestPayment = (projectId, milestoneId) => {
+        if (!window.confirm('이 마일스톤에 대한 지급을 청구하시겠습니까?')) return;
+
         const updatedProjects = freelanceProjects.map(p => {
             if (p.id === projectId) {
                 return {
@@ -47,6 +49,41 @@ const PaymentMilestones = () => {
         });
         setFreelanceProjects(updatedProjects);
         alert(`청구서가 발송되었습니다! (ID: ${milestoneId})`);
+    };
+
+    const handleAddMilestone = (projectId) => {
+        const title = prompt('마일스톤 이름:');
+        if (!title) return;
+        const amountStr = prompt('금액 (원):');
+        if (!amountStr) return;
+        const amount = parseInt(amountStr.replace(/,/g, ''), 10);
+        const date = prompt('예정일 (YYYY-MM-DD):', '2026-03-01');
+
+        const updatedProjects = freelanceProjects.map(p => {
+            if (p.id === projectId) {
+                return {
+                    ...p,
+                    totalAmount: p.totalAmount + amount,
+                    milestones: [...p.milestones, {
+                        id: Date.now(),
+                        title,
+                        description: '추가된 마일스톤',
+                        amount,
+                        due: date,
+                        status: 'upcoming'
+                    }]
+                };
+            }
+            return p;
+        });
+        setFreelanceProjects(updatedProjects);
+    };
+
+    const handleSaveDraft = () => alert('현재 상태가 초안으로 저장되었습니다.\n(로컬 스토리지 또는 DB 연동 필요)');
+    const handleFinalize = () => {
+        if (window.confirm('계약 내용을 최종 확정하시겠습니까?\n확정 후에는 수정이 불가능합니다.')) {
+            alert('계약이 최종 승인되었습니다.');
+        }
     };
 
     const handleAddItem = (e) => {
@@ -84,7 +121,10 @@ const PaymentMilestones = () => {
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <span className="text-2xl">💰</span> Payment Milestones
                                 </h3>
-                                <button className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
+                                <button
+                                    onClick={() => handleAddMilestone(project.id)}
+                                    className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1 active:scale-95"
+                                >
                                     <i className="fas fa-plus-circle"></i> 마일스톤 추가
                                 </button>
                             </div>
@@ -98,8 +138,8 @@ const PaymentMilestones = () => {
                                     <div key={m.id} className="relative z-10 flex items-start gap-4">
                                         {/* Status Icon */}
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 border-white dark:border-slate-800 shadow-sm ${m.status === 'paid' ? 'bg-green-500 text-white' :
-                                                m.status === 'pending' || m.status === 'requested' ? 'bg-primary-500 text-white' :
-                                                    'bg-slate-200 dark:bg-slate-600 text-slate-400'
+                                            m.status === 'pending' || m.status === 'requested' ? 'bg-primary-500 text-white' :
+                                                'bg-slate-200 dark:bg-slate-600 text-slate-400'
                                             }`}>
                                             {m.status === 'paid' ? <i className="fas fa-check text-xs"></i> :
                                                 m.status === 'pending' || m.status === 'requested' ? <i className="fas fa-clock text-xs"></i> :
@@ -115,9 +155,9 @@ const PaymentMilestones = () => {
                                                     <p className="text-xs text-slate-500">{m.description}</p>
                                                 </div>
                                                 <span className={`text-xs font-bold px-2 py-1 rounded-full ${m.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' :
-                                                        m.status === 'requested' ? 'bg-purple-100 text-purple-700' :
-                                                            m.status === 'pending' ? 'bg-blue-100 text-blue-700' :
-                                                                'bg-slate-100 text-slate-500'
+                                                    m.status === 'requested' ? 'bg-purple-100 text-purple-700' :
+                                                        m.status === 'pending' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-slate-100 text-slate-500'
                                                     }`}>
                                                     {m.status === 'paid' ? 'PAID' : m.status === 'requested' ? 'PENDING REQUEST' : m.status === 'pending' ? '청구 가능' : 'UPCOMING'}
                                                 </span>
@@ -191,10 +231,16 @@ const PaymentMilestones = () => {
 
                             {/* Action Buttons */}
                             <div className="space-y-2">
-                                <button className="w-full py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-2">
+                                <button
+                                    onClick={handleSaveDraft}
+                                    className="w-full py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-2 active:scale-95"
+                                >
                                     <i className="far fa-save"></i> Save Draft
                                 </button>
-                                <button className="w-full bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold py-3 rounded-lg text-sm transition-all flex items-center justify-center gap-2">
+                                <button
+                                    onClick={handleFinalize}
+                                    className="w-full bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold py-3 rounded-lg text-sm transition-all flex items-center justify-center gap-2 active:scale-95"
+                                >
                                     <i className="fas fa-check-circle"></i> Finalize Agreement
                                 </button>
                             </div>

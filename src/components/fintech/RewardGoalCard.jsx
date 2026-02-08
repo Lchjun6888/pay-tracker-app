@@ -13,11 +13,25 @@ const RewardGoalCard = () => {
     const remaining = goal.targetAmount - goal.savedAmount;
 
     // 리워드 아이디어 목록
-    const rewardIdeas = [
+    const [rewards, setRewards] = useState([
         { id: 1, title: "치킨 기프티콘", cost: 20000, icon: "🍗", unlocked: true },
         { id: 2, title: "호캉스 1박", cost: 300000, icon: "🏨", unlocked: true },
         { id: 3, title: "새 키보드", cost: 150000, icon: "⌨️", unlocked: false },
-    ];
+    ]);
+
+    const handleAddReward = () => {
+        const title = prompt('새로운 리워드 이름 (예: 커피 한 잔):');
+        if (!title) return;
+        setRewards([...rewards, { id: Date.now(), title, cost: 0, icon: "🎁", unlocked: false }]);
+    };
+
+    const handleRewardClick = (r) => {
+        if (!r.unlocked) {
+            alert('🔒 아직 잠겨있는 리워드입니다. 목표를 달성해보세요!');
+        } else {
+            alert(`🎉 [${r.title}] 리워드를 획득했습니다! (자축하세요!)`);
+        }
+    };
 
     return (
         <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
@@ -63,12 +77,13 @@ const RewardGoalCard = () => {
                         중간 달성 리워드 (셀프 선물)
                     </h3>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                        {rewardIdeas.map(reward => (
+                        {rewards.map(reward => (
                             <div
                                 key={reward.id}
+                                onClick={() => handleRewardClick(reward)}
                                 className={`flex-shrink-0 w-24 p-3 rounded-xl flex flex-col items-center text-center gap-2 border transition-all cursor-pointer
                                     ${reward.unlocked
-                                        ? 'bg-white text-slate-900 border-white shadow-lg hover:scale-105'
+                                        ? 'bg-white text-slate-900 border-white shadow-lg hover:scale-105 active:scale-95'
                                         : 'bg-black/20 text-indigo-300 border-transparent opacity-60 grayscale'}`}
                             >
                                 <span className="text-2xl">{reward.icon}</span>
@@ -82,7 +97,10 @@ const RewardGoalCard = () => {
                         ))}
 
                         {/* Add Reward Button */}
-                        <div className="flex-shrink-0 w-24 p-3 rounded-xl flex flex-col items-center justify-center gap-1 border border-dashed border-white/30 text-indigo-200 hover:bg-white/10 cursor-pointer transition-colors">
+                        <div
+                            onClick={handleAddReward}
+                            className="flex-shrink-0 w-24 p-3 rounded-xl flex flex-col items-center justify-center gap-1 border border-dashed border-white/30 text-indigo-200 hover:bg-white/10 cursor-pointer transition-colors active:scale-95"
+                        >
                             <i className="fas fa-plus text-lg"></i>
                             <span className="text-xs">추가</span>
                         </div>
