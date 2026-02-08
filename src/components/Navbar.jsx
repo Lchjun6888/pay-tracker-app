@@ -20,6 +20,7 @@ export default function Navbar({ currentPage, onNavigate, searchQuery, onSearchC
         { id: 'dashboard', label: '대시보드', icon: 'fas fa-home' },
         { id: 'calendar', label: '캘린더', icon: 'fas fa-calendar' },
         { id: 'jobs', label: '알바 목록', icon: 'fas fa-briefcase' },
+        { id: 'fintech', label: '핀테크', icon: 'fas fa-coins' },
         { id: 'albamon', label: '알바몬', icon: 'fas fa-link' },
         { id: 'settings', label: '설정', icon: 'fas fa-cog' },
     ];
