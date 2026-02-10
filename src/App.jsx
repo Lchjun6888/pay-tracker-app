@@ -5,7 +5,7 @@ import Dashboard from './Dashboard';
 import CalendarView from './views/CalendarView';
 import JobsView from './views/JobsView';
 import SettingsView from './views/SettingsView';
-import FintechView from './views/FintechView';
+
 import { useJobs } from './hooks/useJobs';
 import AddJobModal from './components/AddJobModal';
 import JobDetailModal from './components/JobDetailModal';
@@ -112,8 +112,7 @@ function AppContent() {
             onArchive={archiveJob}
           />
         );
-      case 'fintech':
-        return <FintechView />;
+
       case 'settings':
         return <SettingsView />;
       default:

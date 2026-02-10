@@ -3,10 +3,10 @@ import { formatKRW } from '../utils/koreanLabor';
 
 export default function RewardGoalCard({ currentTotalPay }) {
     const [goalAmount, setGoalAmount] = useState(() => {
-        return parseInt(localStorage.getItem('monthly_goal_amount')) || 3000000;
+        return parseInt(localStorage.getItem('monthly_goal_amount')) || 3500000;
     });
     const [rewardText, setRewardText] = useState(() => {
-        return localStorage.getItem('monthly_goal_reward') || '나에게 주는 특별한 선물 🎁';
+        return localStorage.getItem('monthly_goal_reward') || '맥북 프로 M3 💻';
     });
     const [isEditing, setIsEditing] = useState(false);
 
