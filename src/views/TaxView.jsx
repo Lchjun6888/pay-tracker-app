@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { useJobs } from '../hooks/useJobs';
-import { usePremium } from '../context/PremiumContext';
 import { calculateMonthlyBreakdown, calculateFreelanceTax, formatKRW, KOREAN_LABOR } from '../utils/koreanLabor';
-import PremiumModal from '../components/PremiumModal';
 
 export default function TaxView() {
-    const { isPremium } = usePremium();
     const { allJobs } = useJobs();
-    const [premiumModalOpen, setPremiumModalOpen] = useState(false);
     const [selectedTab, setSelectedTab] = useState('salary'); // 'salary' | 'freelance'
 
     const activeJobs = allJobs.filter(j => j.isActive);
@@ -32,11 +28,7 @@ export default function TaxView() {
     const totalTax = salaryBreakdowns.reduce((sum, s) => sum + s.breakdown.taxAmount, 0) + freelanceTax.withholdingTax;
     const totalNet = totalGross - totalTax;
 
-    const handlePremiumClick = () => {
-        if (!isPremium) setPremiumModalOpen(true);
-    };
-
-    // Generate monthly dummy data for annual chart (based on current month's data)
+    // Monthly chart data
     const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     const currentMonth = new Date().getMonth();
 
@@ -52,7 +44,7 @@ export default function TaxView() {
                 <p className="text-gray-500 dark:text-gray-400 mt-1">실수령액을 한눈에 확인하세요</p>
             </div>
 
-            {/* Summary Cards — FREE */}
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <SummaryCard label="총 수입" value={formatKRW(totalGross)} icon="fa-wallet" gradient="from-blue-500 to-indigo-500" />
                 <SummaryCard label="총 공제액" value={`-${formatKRW(totalTax)}`} icon="fa-receipt" gradient="from-red-400 to-rose-500" negative />
@@ -83,7 +75,7 @@ export default function TaxView() {
                 </button>
             </div>
 
-            {/* FREE: Basic Tax Summary */}
+            {/* Job Breakdown Cards */}
             {selectedTab === 'salary' ? (
                 <div className="space-y-4 mb-8">
                     {salaryBreakdowns.length === 0 ? (
@@ -103,7 +95,6 @@ export default function TaxView() {
                                         {job.type === 'SALARY' ? '월급' : '시급'}
                                     </span>
                                 </div>
-
                                 <div className="grid grid-cols-3 gap-3">
                                     <MiniStat label="총 급여" value={formatKRW(breakdown.grossPay)} />
                                     <MiniStat label="공제액" value={`-${formatKRW(breakdown.taxAmount)}`} negative />
@@ -119,7 +110,6 @@ export default function TaxView() {
                         <EmptyCard message="등록된 프리랜서 프로젝트가 없습니다" />
                     ) : (
                         <>
-                            {/* Individual project cards */}
                             {freelanceJobs.map(job => {
                                 const tax = calculateFreelanceTax(job.hourlyRate);
                                 return (
@@ -144,7 +134,6 @@ export default function TaxView() {
                                     </div>
                                 );
                             })}
-                            {/* 5월 종소세 안내 */}
                             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4">
                                 <div className="flex items-start gap-3">
                                     <i className="fas fa-info-circle text-amber-500 mt-0.5"></i>
@@ -164,109 +153,84 @@ export default function TaxView() {
                 </div>
             )}
 
-            {/* PREMIUM: Detailed Breakdown — Locked/Unlocked */}
-            <div className="relative">
-                {!isPremium && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-3xl">
-                        <button
-                            onClick={handlePremiumClick}
-                            className="flex flex-col items-center gap-3 cursor-pointer group"
-                        >
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                                <i className="fas fa-crown text-white text-2xl"></i>
-                            </div>
-                            <div className="text-center">
-                                <p className="font-black text-gray-900 dark:text-white">Premium 기능</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">탭하여 잠금 해제</p>
-                            </div>
-                        </button>
+            {/* Detailed Tax Breakdown Table */}
+            <div className="space-y-6">
+                <div className="bg-white dark:bg-slate-800/60 rounded-3xl border border-gray-100 dark:border-slate-700/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                        <i className="fas fa-chart-pie text-emerald-500"></i>
+                        <h2 className="font-black text-gray-900 dark:text-white">세금 상세 분석</h2>
                     </div>
-                )}
-
-                <div className={`space-y-6 ${!isPremium ? 'pointer-events-none select-none' : ''}`}>
-                    {/* Detailed Tax Breakdown Table */}
-                    <div className="bg-white dark:bg-slate-800/60 rounded-3xl border border-gray-100 dark:border-slate-700/50 p-6 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                            <i className="fas fa-chart-pie text-amber-500"></i>
-                            <h2 className="font-black text-gray-900 dark:text-white">세금 상세 분석</h2>
-                            {isPremium && <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-bold">PREMIUM</span>}
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-100 dark:border-slate-700">
-                                        <th className="text-left py-3 px-2 text-xs font-bold text-gray-400 uppercase">항목</th>
-                                        <th className="text-right py-3 px-2 text-xs font-bold text-gray-400 uppercase">요율</th>
-                                        <th className="text-right py-3 px-2 text-xs font-bold text-gray-400 uppercase">월 공제액</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50 dark:divide-slate-700/50">
-                                    <TaxRow label="국민연금" rate="4.5%" amount={Math.floor(totalGross * 0.045)} />
-                                    <TaxRow label="건강보험" rate="3.545%" amount={Math.floor(totalGross * 0.03545)} />
-                                    <TaxRow label="장기요양보험" rate="0.46%" amount={Math.floor(totalGross * 0.0046)} />
-                                    <TaxRow label="고용보험" rate="0.9%" amount={Math.floor(totalGross * 0.009)} />
-                                    <tr className="font-bold">
-                                        <td className="py-3 px-2 text-gray-900 dark:text-white">합계</td>
-                                        <td className="py-3 px-2 text-right text-gray-900 dark:text-white">~9.4%</td>
-                                        <td className="py-3 px-2 text-right text-red-500">{formatKRW(Math.floor(totalGross * 0.0945))}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-100 dark:border-slate-700">
+                                    <th className="text-left py-3 px-2 text-xs font-bold text-gray-400 uppercase">항목</th>
+                                    <th className="text-right py-3 px-2 text-xs font-bold text-gray-400 uppercase">요율</th>
+                                    <th className="text-right py-3 px-2 text-xs font-bold text-gray-400 uppercase">월 공제액</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50 dark:divide-slate-700/50">
+                                <TaxRow label="국민연금" rate="4.5%" amount={Math.floor(totalGross * 0.045)} />
+                                <TaxRow label="건강보험" rate="3.545%" amount={Math.floor(totalGross * 0.03545)} />
+                                <TaxRow label="장기요양보험" rate="0.46%" amount={Math.floor(totalGross * 0.0046)} />
+                                <TaxRow label="고용보험" rate="0.9%" amount={Math.floor(totalGross * 0.009)} />
+                                <tr className="font-bold">
+                                    <td className="py-3 px-2 text-gray-900 dark:text-white">합계</td>
+                                    <td className="py-3 px-2 text-right text-gray-900 dark:text-white">~9.4%</td>
+                                    <td className="py-3 px-2 text-right text-red-500">{formatKRW(Math.floor(totalGross * 0.0945))}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
-                    {/* Annual Income Chart */}
-                    <div className="bg-white dark:bg-slate-800/60 rounded-3xl border border-gray-100 dark:border-slate-700/50 p-6 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                            <i className="fas fa-chart-bar text-amber-500"></i>
-                            <h2 className="font-black text-gray-900 dark:text-white">연간 소득 추이</h2>
-                            {isPremium && <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-bold">PREMIUM</span>}
-                        </div>
-
-                        <div className="flex items-end gap-1.5 h-40">
-                            {months.map((m, i) => {
-                                const isCurrentOrPast = i <= currentMonth;
-                                const height = isCurrentOrPast ? (20 + Math.random() * 60) : 10;
-                                return (
-                                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                                        <div
-                                            className={`w-full rounded-t-lg transition-all ${isCurrentOrPast
-                                                ? 'bg-gradient-to-t from-emerald-500 to-teal-400'
-                                                : 'bg-gray-100 dark:bg-slate-700'}`}
-                                            style={{ height: `${height}%` }}
-                                        ></div>
-                                        <span className={`text-[9px] font-bold ${i === currentMonth ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'}`}>
-                                            {m}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* PDF Export Button */}
-                    <button
-                        onClick={() => window.print()}
-                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                        <i className="fas fa-file-pdf"></i>
-                        PDF 급여명세서 다운로드
-                    </button>
                 </div>
+
+                {/* Annual Income Chart */}
+                <div className="bg-white dark:bg-slate-800/60 rounded-3xl border border-gray-100 dark:border-slate-700/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                        <i className="fas fa-chart-bar text-emerald-500"></i>
+                        <h2 className="font-black text-gray-900 dark:text-white">연간 소득 추이</h2>
+                    </div>
+                    <div className="flex items-end gap-1.5 h-40">
+                        {months.map((m, i) => {
+                            const isCurrentOrPast = i <= currentMonth;
+                            const height = isCurrentOrPast ? (20 + Math.random() * 60) : 10;
+                            return (
+                                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                                    <div
+                                        className={`w-full rounded-t-lg transition-all ${isCurrentOrPast
+                                            ? 'bg-gradient-to-t from-emerald-500 to-teal-400'
+                                            : 'bg-gray-100 dark:bg-slate-700'}`}
+                                        style={{ height: `${height}%` }}
+                                    ></div>
+                                    <span className={`text-[9px] font-bold ${i === currentMonth ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'}`}>
+                                        {m}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* PDF Export Button */}
+                <button
+                    onClick={() => window.print()}
+                    className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-bold text-sm hover:from-emerald-600 hover:to-teal-600 transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <i className="fas fa-file-pdf"></i>
+                    PDF 급여명세서 다운로드
+                </button>
+
+                {/* Buy Me a Coffee */}
+                <a
+                    href="https://buymeacoffee.com/lchjun6888"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full py-4 bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 rounded-2xl font-bold text-sm hover:from-amber-500 hover:to-yellow-600 transition shadow-lg shadow-amber-400/20 text-center no-underline"
+                >
+                    <i className="fas fa-mug-hot mr-2"></i>
+                    도움이 되셨다면 커피 한 잔 사주세요 ☕
+                </a>
             </div>
-
-            {/* Premium Badge (if premium) */}
-            {isPremium && (
-                <div className="mt-6 text-center">
-                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-full">
-                        <i className="fas fa-crown text-amber-500"></i>
-                        <span className="text-sm font-bold text-amber-700 dark:text-amber-400">Premium 활성화됨</span>
-                    </span>
-                </div>
-            )}
-
-            <PremiumModal isOpen={premiumModalOpen} onClose={() => setPremiumModalOpen(false)} />
         </div>
     );
 }

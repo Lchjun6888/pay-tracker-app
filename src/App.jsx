@@ -8,7 +8,6 @@ import SettingsView from './views/SettingsView';
 import TaxView from './views/TaxView';
 
 import { useJobs } from './hooks/useJobs';
-import { PremiumProvider } from './context/PremiumContext';
 import AddJobModal from './components/AddJobModal';
 import JobDetailModal from './components/JobDetailModal';
 import ProfileModal from './components/ProfileModal';
@@ -187,11 +186,9 @@ function AppContent() {
 
 function App() {
   return (
-    <PremiumProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </PremiumProvider>
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
