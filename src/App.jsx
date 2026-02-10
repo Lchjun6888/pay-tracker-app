@@ -5,8 +5,10 @@ import Dashboard from './Dashboard';
 import CalendarView from './views/CalendarView';
 import JobsView from './views/JobsView';
 import SettingsView from './views/SettingsView';
+import TaxView from './views/TaxView';
 
 import { useJobs } from './hooks/useJobs';
+import { PremiumProvider } from './context/PremiumContext';
 import AddJobModal from './components/AddJobModal';
 import JobDetailModal from './components/JobDetailModal';
 import ProfileModal from './components/ProfileModal';
@@ -113,6 +115,8 @@ function AppContent() {
           />
         );
 
+      case 'tax':
+        return <TaxView />;
       case 'settings':
         return <SettingsView />;
       default:
@@ -183,9 +187,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <PremiumProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </PremiumProvider>
   );
 }
 
